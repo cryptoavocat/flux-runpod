@@ -1,18 +1,23 @@
 """Example handler file."""
+from diffusers import DiffusionPipeline
+import torch
+import os
 
-import runpod
+# Load model once when container boots
+pipe = DiffusionPipeline.from_pretrained(
+    "black-forest-labs/FLUX.1-Krea-dev",
+    torch_dtype=torch.float16,
+)
+pipe.to("cuda")
 
-# If your handler runs inference on a model, load the model here.
-# You will want models to be loaded into memory before starting serverless.
+# Required function for RunPod
+def handler(event):
+    prompt = event["input"].get("prompt", "Astronaut in a jungle")
+    image = pipe(prompt).images[0]
 
+    # Save to file
+    image_path = "/tmp/generated.png"
+    image.save(image_path)
 
-def handler(job):
-    """Handler function that will be used to process jobs."""
-    job_input = job["input"]
-
-    name = job_input.get("name", "World")
-
-    return f"Hello, {name}!"
-
-
-runpod.serverless.start({"handler": handler})
+    # Return path so RunPod can expose it
+    return {"output": image_path}
