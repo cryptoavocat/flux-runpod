@@ -2,6 +2,10 @@
 from diffusers import DiffusionPipeline
 import torch
 import os
+import os
+from huggingface_hub import login
+
+login(token=os.getenv("HF_TOKEN"))
 
 # Load model once when container boots
 pipe = DiffusionPipeline.from_pretrained(
