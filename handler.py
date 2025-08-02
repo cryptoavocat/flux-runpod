@@ -1,25 +1,17 @@
 """RunPod handler for FLUX image generation."""
 import os
-from huggingface_hub import login
-from diffusers import DiffusionPipeline
 import torch
+from diffusers import DiffusionPipeline
+import base64
 
-# Authenticate with Hugging Face
-token = os.environ.get("HF_TOKEN")
-if not token:
-    raise ValueError("HF_TOKEN environment variable not found.")
-login(token=token, new_session=False)
-print("✅ Hugging Face login successful.")
-
-# Load model (once)
-# Authenticate with Hugging Face by setting HF_TOKEN directly in the env
+# Authenticate by setting HF_HUB_TOKEN
 os.environ["HF_HUB_TOKEN"] = os.environ.get("HF_TOKEN", "")
 
-# Load the model (will use the token from env automatically)
+# Load the model (auto-authenticated)
 pipe = DiffusionPipeline.from_pretrained(
     "black-forest-labs/FLUX.1-Krea-dev",
     torch_dtype=torch.float16,
-    use_auth_token=True  # 👈 critical for gated model access
+    use_auth_token=True  # critical for gated model access
 )
 pipe.to("cuda")
 print("✅ Model loaded to CUDA.")
@@ -35,8 +27,12 @@ def handler(event):
         image.save(output_path)
         print("✅ Image saved to /tmp.")
 
-        return {"output": output_path}
-    
+        # OPTIONAL: return base64 instead of file path
+        with open(output_path, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+        return {"image_base64": img_b64}
+
     except Exception as e:
         print("❌ Error in handler:", str(e))
         return {"error": str(e)}
