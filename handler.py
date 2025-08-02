@@ -1,27 +1,37 @@
-"""Example handler file."""
-from diffusers import DiffusionPipeline
-import torch
-import os
+"""RunPod handler for FLUX image generation."""
 import os
 from huggingface_hub import login
+from diffusers import DiffusionPipeline
+import torch
 
-login(token=os.getenv("HF_TOKEN"))
+# Authenticate with Hugging Face
+token = os.environ.get("HF_TOKEN")
+if not token:
+    raise ValueError("HF_TOKEN environment variable not found.")
+login(token=token, new_session=False)
+print("✅ Hugging Face login successful.")
 
-# Load model once when container boots
+# Load model (once)
 pipe = DiffusionPipeline.from_pretrained(
     "black-forest-labs/FLUX.1-Krea-dev",
-    torch_dtype=torch.float16,
+    torch_dtype=torch.float16
 )
 pipe.to("cuda")
+print("✅ Model loaded to CUDA.")
 
-# Required function for RunPod
+# Main RunPod handler function
 def handler(event):
-    prompt = event["input"].get("prompt", "Astronaut in a desert island")
-    image = pipe(prompt).images[0]
+    try:
+        prompt = event["input"].get("prompt", "Astronaut on a desert island")
+        print(f"🚀 Prompt received: {prompt}")
+        
+        image = pipe(prompt).images[0]
+        output_path = "/tmp/generated_image.png"
+        image.save(output_path)
+        print("✅ Image saved to /tmp.")
 
-    # Save to file
-    image_path = "/tmp/generated.png"
-    image.save(image_path)
-
-    # Return path so RunPod can expose it
-    return {"output": image_path}
+        return {"output": output_path}
+    
+    except Exception as e:
+        print("❌ Error in handler:", str(e))
+        return {"error": str(e)}
