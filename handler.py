@@ -19,7 +19,7 @@ print("✅ Model loaded to CUDA.")
 # Main RunPod handler function
 def handler(event):
     try:
-        prompt = event["input"].get("prompt", "Astronaut on an island on a deserted planet with a martini")
+        prompt = event["input"].get("prompt", "Astronaut on an island on a deserted planet with a cocktail in hand")
         print(f"🚀 Prompt received: {prompt}")
         
         image = pipe(prompt).images[0]
