@@ -12,9 +12,14 @@ login(token=token, new_session=False)
 print("✅ Hugging Face login successful.")
 
 # Load model (once)
+# Authenticate with Hugging Face by setting HF_TOKEN directly in the env
+os.environ["HF_HUB_TOKEN"] = os.environ.get("HF_TOKEN", "")
+
+# Load the model (will use the token from env automatically)
 pipe = DiffusionPipeline.from_pretrained(
     "black-forest-labs/FLUX.1-Krea-dev",
-    torch_dtype=torch.float16
+    torch_dtype=torch.float16,
+    use_auth_token=True  # 👈 critical for gated model access
 )
 pipe.to("cuda")
 print("✅ Model loaded to CUDA.")
