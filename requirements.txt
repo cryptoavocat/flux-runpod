@@ -1,3 +1,8 @@
 # Required Python packages get listed here, one per line.
 
 runpod~=1.7.9
+torch
+diffusers[torch]
+transformers
+accelerate
+huggingface_hub
