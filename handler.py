@@ -16,7 +16,7 @@ pipe.to("cuda")
 
 # Required function for RunPod
 def handler(event):
-    prompt = event["input"].get("prompt", "Astronaut in a desert")
+    prompt = event["input"].get("prompt", "Astronaut in a desert island")
     image = pipe(prompt).images[0]
 
     # Save to file
